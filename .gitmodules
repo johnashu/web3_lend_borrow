@@ -1,0 +1,3 @@
+[submodule "web3_base"]
+	path = web3_base
+	url = https://github.com/johnashu/web3_base.git
