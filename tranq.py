@@ -77,62 +77,85 @@ class Tranq(Web3Base):
         return calc
 
     def deposit(self, amount: int) -> None:
-        signed_txn = self.tx_function(
-            self.contract.functions.mint, self.gas_price, value=amount
-        )
-        self.process_tx(signed_txn)
+        log.info(f"Trying to Deposit  ::  {readable_price(amount)}")
+        try:
+            signed_txn = self.tx_function(
+                self.contract.functions.mint, self.gas_price, value=amount
+            )
+            self.process_tx(signed_txn)
+        except ValueError as e:
+            log.error(f"issue with Depositing [ {amount} ]  ::  {e}")
 
     def withdraw(self, amount: int) -> None:
-        withdraw = self.calc_amount_by_rate(amount)
-        signed_txn = self.tx_function(
-            self.contract.functions.redeem, gas_price, func_args=(withdraw,)
-        )
-        self.process_tx(signed_txn)
+        log.info(f"Trying to withdraw  ::  {readable_price(amount)}")
+        try:
+            withdraw = self.calc_amount_by_rate(amount)
+            signed_txn = self.tx_function(
+                self.contract.functions.redeem, gas_price, func_args=(withdraw,)
+            )
+            self.process_tx(signed_txn)
+        except ValueError as e:
+            log.error(f"issue with withdrawing [ {amount} ]  ::  {e}")
 
     def borrow(self, amount: int) -> None:
-        signed_txn = self.tx_function(
-            self.contract.functions.borrow, gas_price, func_args=(amount,)
-        )
-        self.process_tx(signed_txn)
+        log.info(f"Trying to Borrow  :: $ {readable_price(amount)}")
+        try:
+            signed_txn = self.tx_function(
+                self.contract.functions.borrow, gas_price, func_args=(amount,)
+            )
+            self.process_tx(signed_txn)
+        except ValueError as e:
+            log.error(f"issue with Borrowing [ {amount} ]  ::  {e}")
 
     def repay(self, amount: int) -> None:
-        signed_txn = self.tx_function(
-            self.contract.functions.repayBorrow, gas_price, value=amount
-        )
-        self.process_tx(signed_txn)
+        log.info(f"Trying to repay  ::  {readable_price(amount)}")
+        try:
+            signed_txn = self.tx_function(
+                self.contract.functions.repayBorrow, gas_price, value=amount
+            )
+            self.process_tx(signed_txn)
+        except ValueError as e:
+            log.error(f"issue with repaying [ {amount} ]  ::  {e}")
 
-    def repay_all_borrow_from_deposit(self) -> None:
+    def repay_all_borrow_from_deposit(
+        self,
+        amount_less_than_max: int = 1000,
+        repay_buffer: int = 3,
+        buffer_amount: int = 100,
+    ) -> None:
         # buffer
-        minus_amount = tx.w3.toWei("1000", "ether")
-        minus_repay_buffer = tx.w3.toWei("3", "ether")
-        buffer = tx.w3.toWei("100", "ether")
+        minus_amount = tx.w3.toWei(amount_less_than_max, "ether")
+        minus_repay_buffer = tx.w3.toWei(repay_buffer, "ether")
+        buffer = tx.w3.toWei(buffer_amount, "ether")
         while 1:
+
             if self.borrowed_balance() <= 50000000:
                 log.info("Borrowed amounts paid..")
                 break
 
             left = self.left_to_borrow() - minus_amount
+
             grab_borrow = self.left_to_borrow() - self.borrowed_balance()
+
             if grab_borrow > buffer:
                 left = self.borrowed_balance() + minus_repay_buffer
-            log.info(f"Trying to withdraw  ::  {readable_price(left)}")
+
             if left <= 0:
                 log.error("Not enough Buffer to continue.. Exiting..")
                 break
-            try:
-                self.withdraw(left)
-            except ValueError as e:
-                log.error(f"issue with withdrawing [ {left} ]  ::  {e}")
+
+            self.withdraw(left)
+
             time.sleep(2)
+
             b = self.balance()
             repay = tx.w3.toWei(b, "ether") - minus_repay_buffer
+
             if self.borrowed_balance() < repay:
                 repay = self.borrowed_balance()
-            log.info(f"Trying to repay  ::  {readable_price(repay)}")
-            try:
-                self.repay(repay)
-            except ValueError as e:
-                log.error(f"issue with repaying [ {left} ]  ::  {e}")
+
+            self.repay(repay)
+
             time.sleep(2)
 
     def fill_borrow_from_deposit(self, percent: float = 2, buffer: int = 3) -> None:
@@ -144,12 +167,14 @@ class Tranq(Web3Base):
             b = self.balance()
             # check amount to borrow > left borrow - percent
             perc_left = self.percentage_left()
+            log.info(f"perc_left  ::  {perc_left}")
 
             if perc_left <= percent:
-                if b <= buffer * 2:
+                if b <= buffer:
                     log.info("Max percentage left reached.  Exiting..")
                     break
                 else:
+                    log.info("Borrow Flag False")
                     borrow_flag = False
 
             # borrow
@@ -159,24 +184,16 @@ class Tranq(Web3Base):
 
                 # minus percent in wei.
                 to_borrow = self.minus_percent(grab_borrow, percent)
-                log.info(f"Trying to Borrow  :: $ {readable_price(to_borrow)}")
-                try:
-                    self.borrow(to_borrow)
-                except ValueError as e:
-                    log.error(f"issue with Borrowing [ {to_borrow} ]  ::  {e}")
+                self.borrow(to_borrow)
 
-            time.sleep(5)
+            time.sleep(2)
 
             if deposit_flag:
                 # deposit
                 deposit_amount = tx.w3.toWei(b, "ether") - minus_repay_buffer
-                log.info(f"Trying to Deposit  ::  {readable_price(deposit_amount)}")
-                try:
-                    self.deposit(deposit_amount)
-                except ValueError as e:
-                    log.error(f"issue with Depositing [ {deposit_amount} ]  ::  {e}")
+                self.deposit(deposit_amount)
 
-            time.sleep(5)
+            time.sleep(2)
 
 
 if __name__ == "__main__":
@@ -186,12 +203,12 @@ if __name__ == "__main__":
     w3 = Web3(Web3.WebsocketProvider(wss_url))
     tx = Tranq(contract, 50, w3, envs.p_key, abi=abi)
 
-    amount = tx.w3.fromWei(1000, "ether")
-    print(amount)
-    print(tx.gas_price)
-
-    # tx.repay_all_borrow_from_deposit()
-    tx.fill_borrow_from_deposit(percent=2)
+    # amount = tx.w3.fromWei(1000, "ether")
+    # print(amount)
+    # print(tx.gas_price)
     # tx.withdraw(amount)
     # time.sleep(1)
     # tx.repay(amount)
+
+    # tx.repay_all_borrow_from_deposit(amount_less_than_max=1000, repay_buffer=3, buffer_amount= 100)
+    tx.fill_borrow_from_deposit(percent=2)
