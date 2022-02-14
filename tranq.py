@@ -79,7 +79,7 @@ class Tranq(Web3Base):
     def deposit(self, amount: int) -> None:
         log.info(f"Trying to Deposit  ::  {readable_price(amount)}")
         try:
-            signed_txn = self.tx_function(
+            signed_txn = self.build_tx_with_function(
                 self.contract.functions.mint, self.gas_price, value=amount
             )
             self.process_tx(signed_txn)
@@ -90,7 +90,7 @@ class Tranq(Web3Base):
         log.info(f"Trying to withdraw  ::  {readable_price(amount)}")
         try:
             withdraw = self.calc_amount_by_rate(amount)
-            signed_txn = self.tx_function(
+            signed_txn = self.build_tx_with_function(
                 self.contract.functions.redeem, gas_price, func_args=(withdraw,)
             )
             self.process_tx(signed_txn)
@@ -100,7 +100,7 @@ class Tranq(Web3Base):
     def borrow(self, amount: int) -> None:
         log.info(f"Trying to Borrow  :: $ {readable_price(amount)}")
         try:
-            signed_txn = self.tx_function(
+            signed_txn = self.build_tx_with_function(
                 self.contract.functions.borrow, gas_price, func_args=(amount,)
             )
             self.process_tx(signed_txn)
@@ -110,7 +110,7 @@ class Tranq(Web3Base):
     def repay(self, amount: int) -> None:
         log.info(f"Trying to repay  ::  {readable_price(amount)}")
         try:
-            signed_txn = self.tx_function(
+            signed_txn = self.build_tx_with_function(
                 self.contract.functions.repayBorrow, gas_price, value=amount
             )
             self.process_tx(signed_txn)
@@ -122,6 +122,7 @@ class Tranq(Web3Base):
         amount_less_than_max: int = 1000,
         repay_buffer: int = 3,
         buffer_amount: int = 100,
+        stop_at_amount: int = 0,
     ) -> None:
         # buffer
         minus_amount = tx.w3.toWei(amount_less_than_max, "ether")
@@ -149,6 +150,10 @@ class Tranq(Web3Base):
             time.sleep(2)
 
             b = self.balance()
+            if b >= stop_at_amount and stop_at_amount > 0:
+                log.info(f"Amount in wallet is  {b}.. Exiting..")
+                break
+
             repay = tx.w3.toWei(b, "ether") - minus_repay_buffer
 
             if self.borrowed_balance() < repay:
@@ -210,5 +215,5 @@ if __name__ == "__main__":
     # time.sleep(1)
     # tx.repay(amount)
 
-    # tx.repay_all_borrow_from_deposit(amount_less_than_max=1000, repay_buffer=3, buffer_amount= 100)
+    # tx.repay_all_borrow_from_deposit(amount_less_than_max=1000, repay_buffer=3, buffer_amount= 100, stop_at_amount=68000)
     tx.fill_borrow_from_deposit(percent=2)
