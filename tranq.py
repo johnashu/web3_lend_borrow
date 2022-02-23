@@ -1,8 +1,8 @@
 from lend_borrow import *
 
-# TODO: work out the calculation to consider multiple assets,
+# TODO: work out the calculation to consider multiple assets - get_rate()
 # With multiple assets, you will need to adjust this to match the % on the app..
-# With a single asses as collatoral, you can simply use the % for that collaterol.
+# With a single asses as collatoral, you can simply use the % for that collateral.
 MAX_BORROW_PERCENT = 83.8  # ONE & USDC..
 GWEI = 50
 
@@ -27,9 +27,12 @@ if __name__ == "__main__":
     rate = tx.get_rate()
     print(rate)
 
-    print(tx.gas_price)
-    tx.withdraw(amount)
-    time.sleep(1)
+    tx.deposited_token()
+
+    # print(tx.gas_price)
+    # tx.withdraw(amount)
+    # time.sleep(1)
+
     # tx.repay(amount)
     # tx.borrow(amount)
     # tx.deposit(amount)

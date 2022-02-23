@@ -61,7 +61,7 @@ class LendBorrow(Web3Base):
         log.info(f"Left to Borrow   ::  {can_borrow}")
         return can_borrow
 
-    def calc_amount_by_rate(self, amount) -> int:
+    def calc_amount_by_rate(self, amount: int) -> int:
         calc = int(amount / self.get_rate()) * 100
         log.info(f"calculated amount      ::  {calc}\n")
         return calc
@@ -113,7 +113,7 @@ class LendBorrow(Web3Base):
         repay_buffer: int = 3,
         buffer_amount: int = 100,
         stop_at_amount: int = 0,
-        test_run=False,
+        test_run: bool = False,
     ) -> None:
         # buffer
         minus_amount = self.w3.toWei(amount_less_than_max, "ether")
@@ -156,7 +156,7 @@ class LendBorrow(Web3Base):
         percent: float = 2,
         buffer: int = 3,
         GAS_AMOUNT: float = 0.01,
-        test_run=False,
+        test_run: bool = False,
     ) -> None:
         minus_repay_buffer = self.w3.toWei(buffer, "ether")
 

@@ -41,10 +41,6 @@ if __name__ == "__main__":
     #     repay_buffer=1,
     #     buffer_amount=100,
     #     stop_at_amount=68000,
-    # )
-    # tx.fill_borrow_from_deposit(
-    #     percent=5,
-    #     buffer=1,
-    #     GAS_AMOUNT=0.01,
     #     test_run=True
-    #     )
+    # )
+    tx.fill_borrow_from_deposit(percent=2, buffer=0.1, GAS_AMOUNT=0.01, test_run=True)
