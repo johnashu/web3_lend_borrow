@@ -22,7 +22,7 @@ if __name__ == "__main__":
     tx = LendBorrow(contract, GWEI, MAX_BORROW_PERCENT, w3, envs.p_key, abi=abi)
 
     tx.check_details()
-    amount = tx.w3.toWei(1, "ether")
+    amount = tx.w3.toWei(0.1, "ether")
     print(amount)
     rate = tx.get_rate()
     print(rate)
@@ -35,7 +35,13 @@ if __name__ == "__main__":
 
     # tx.repay(amount)
     # tx.borrow(amount)
-    # tx.deposit(amount)
+    tx.deposit(
+        amount,
+        **dict(
+            # display_receipt=True,
+            display_tx_hash=True
+        )
+    )
 
     # tx.repay_all_borrow_from_deposit(
     #     amount_less_than_max=1000,

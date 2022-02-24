@@ -66,44 +66,44 @@ class LendBorrow(Web3Base):
         log.info(f"calculated amount      ::  {calc}\n")
         return calc
 
-    def deposit(self, amount: int) -> None:
+    def deposit(self, amount: int, **kw) -> None:
         log.info(f"Trying to Deposit  ::  {readable_price(amount)}")
         try:
             signed_txn = self.build_tx_with_function(
                 self.contract.functions.mint, self.gas_price, value=amount
             )
-            self.process_tx(signed_txn)
+            self.process_tx(signed_txn, **kw)
         except ValueError as e:
             log.error(f"issue with Depositing [ {amount} ]  ::  {e}")
 
-    def withdraw(self, amount: int) -> None:
+    def withdraw(self, amount: int, **kw) -> None:
         log.info(f"Trying to withdraw  ::  {readable_price(amount)}")
         try:
             withdraw = self.calc_amount_by_rate(amount)
             signed_txn = self.build_tx_with_function(
                 self.contract.functions.redeem, self.gas_price, func_args=(withdraw,)
             )
-            self.process_tx(signed_txn)
+            self.process_tx(signed_txn, **kw)
         except ValueError as e:
             log.error(f"issue with withdrawing [ {amount} ]  ::  {e}")
 
-    def borrow(self, amount: int) -> None:
+    def borrow(self, amount: int, **kw) -> None:
         log.info(f"Trying to Borrow  :: {readable_price(amount)}")
         try:
             signed_txn = self.build_tx_with_function(
                 self.contract.functions.borrow, self.gas_price, func_args=(amount,)
             )
-            self.process_tx(signed_txn)
+            self.process_tx(signed_txn, **kw)
         except ValueError as e:
             log.error(f"issue with Borrowing [ {amount} ]  ::  {e}")
 
-    def repay(self, amount: int) -> None:
+    def repay(self, amount: int, **kw) -> None:
         log.info(f"Trying to repay  ::  {readable_price(amount)}")
         try:
             signed_txn = self.build_tx_with_function(
                 self.contract.functions.repayBorrow, self.gas_price, value=amount
             )
-            self.process_tx(signed_txn)
+            self.process_tx(signed_txn, **kw)
         except ValueError as e:
             log.error(f"issue with repaying [ {amount} ]  ::  {e}")
 
