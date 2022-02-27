@@ -36,7 +36,7 @@ if __name__ == "__main__":
     # tx.borrow(amount)
     # tx.deposit(amount)
 
-    # tx.repay_all_borrow_from_deposit(
+    # tx.repay_borrow_from_deposit(
     #     amount_less_than_max=1000,
     #     repay_buffer=1,
     #     buffer_amount=100,

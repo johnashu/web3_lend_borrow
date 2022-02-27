@@ -18,7 +18,7 @@ class LendBorrow(Web3Base):
         return balanceOf
 
     def get_rate(self) -> int:
-        rate = int(self.contract.functions.exchangeRateStored().call() / 10 ** 16)
+        rate = int(self.contract.functions.exchangeRateStored().call() / 10**16)
         return rate
 
     def deposited_token(self) -> int:
@@ -107,36 +107,60 @@ class LendBorrow(Web3Base):
         except ValueError as e:
             log.error(f"issue with repaying [ {amount} ]  ::  {e}")
 
-    def repay_all_borrow_from_deposit(
+    def repay_borrow_from_deposit(
         self,
         amount_less_than_max: int = 1000,
         repay_buffer: int = 3,
         buffer_amount: int = 100,
         stop_at_amount: int = 0,
+        stop_at_perc: int = 0,
         test_run: bool = False,
     ) -> None:
         # buffer
-        minus_amount = self.w3.toWei(amount_less_than_max, "ether")
+        minus_amount_from_max = self.w3.toWei(amount_less_than_max, "ether")
         minus_repay_buffer = self.w3.toWei(repay_buffer, "ether")
         buffer = self.w3.toWei(buffer_amount, "ether")
+
+        last_balance = self.balance()
+
         while 1:
+            withdraw_flag = True
+            balance = self.balance()
+            balanceWei = self.w3.toWei(balance, "ether")
+            # print(balanceWei <= minus_repay_buffer, balanceWei,  minus_repay_buffer)
+            if balanceWei <= minus_repay_buffer:
+                log.info(
+                    "Not enough buffer in account.. Add some more token or reduce the buffer amount."
+                )
+                break
+
+            # print(last_balance, balance)
+            if last_balance > balance:
+                log.info("Withdraw Flag = False")
+                withdraw_flag = False
+
+            perc_left = self.percentage_left()
+
+            if 100 - perc_left <= stop_at_perc:
+                log.info(
+                    f"Percentage is {self.percent_borrowed()} and you asked me to stop at {stop_at_perc}.."
+                )
+                break
 
             if self.borrowed_balance() <= 50000000:
                 log.info("Borrowed amounts paid..")
                 break
 
-            left = self.left_to_borrow() - minus_amount
+            left = self.left_to_borrow() - minus_amount_from_max
 
             grab_borrow = self.left_to_borrow() - self.borrowed_balance()
 
             if grab_borrow > buffer:
                 left = self.borrowed_balance() + minus_repay_buffer
 
-            if left <= 0:
-                log.error("Not enough Buffer to continue.. Exiting..")
-                break
             if not test_run:
-                self.withdraw(left)
+                if withdraw_flag:
+                    self.withdraw(left)
 
             b = self.balance()
             if b >= stop_at_amount and stop_at_amount > 0:
@@ -150,6 +174,8 @@ class LendBorrow(Web3Base):
 
             if not test_run:
                 self.repay(repay)
+
+            last_balance = self.balance()
 
     def fill_borrow_from_deposit(
         self,

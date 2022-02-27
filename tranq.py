@@ -3,7 +3,7 @@ from lend_borrow import *
 # TODO: work out the calculation to consider multiple assets - get_rate()
 # With multiple assets, you will need to adjust this to match the % on the app..
 # With a single asses as collatoral, you can simply use the % for that collateral.
-MAX_BORROW_PERCENT = 83.8  # ONE & USDC..
+MAX_BORROW_PERCENT = 80.37  # ONE & USDC..
 GWEI = 50
 
 contracts = dict(
@@ -28,6 +28,10 @@ if __name__ == "__main__":
     print(rate)
 
     tx.deposited_token()
+    tx.percentage_left()
+    tx.left_to_borrow()
+    # r, s = tx.wait_for_receipt('')
+    # tx.check_tx_hash(s, '')
 
     # print(tx.gas_price)
     # tx.withdraw(amount)
@@ -35,24 +39,34 @@ if __name__ == "__main__":
 
     # tx.repay(amount)
     # tx.borrow(amount)
-    tx.deposit(
-        amount,
-        **dict(
-            # display_receipt=True,
-            display_tx_hash=True
-        )
+    # tx.deposit(
+    #     amount,
+    #     **dict(
+    #         # display_receipt=True,
+    #         display_tx_hash=True
+    #     )
+    # # )
+
+    tx.repay_borrow_from_deposit(
+        amount_less_than_max=100,
+        repay_buffer=2.5,
+        buffer_amount=100,
+        stop_at_amount=1000,
+        stop_at_perc=85,
+        # test_run=True,
     )
 
-    # tx.repay_all_borrow_from_deposit(
-    #     amount_less_than_max=1000,
-    #     repay_buffer=3,
-    #     buffer_amount=100,
-    #     stop_at_amount=68000,
-    #     test_run=True,
-    # )
     # tx.fill_borrow_from_deposit(
     #     percent=5,
     #     buffer=10,
     #     GAS_AMOUNT=0.01,
     #     test_run=True
     # )
+
+953554858409426978998
+92823763678341205555018
+
+a = 2000000000000000000
+b = 2992825550000000000
+
+print(b <= a)
