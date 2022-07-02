@@ -8,13 +8,15 @@ if __name__ == "__main__":
         MOVR="0x6a1A771C7826596652daDC9145fEAaE62b1cd07f",
     )
     rpc = "https://rpc.moonriver.moonbeam.network"
+    rpc = "https://moonriver.api.onfinality.io/public"
     chain_id = 1285
-    # wss_url = 'wss://moonriver.api.onfinality.io/public-ws'
+    wss_url = "wss://moonriver.api.onfinality.io/public-ws"
     # wss_url = 'wss://wss.api.moonriver.moonbeam.network'
     contract = contracts["MOVR"]
     fn = os.path.join("web3_base", "abis", "moonwellMOVR.json")
     abi = get_abi(fn)
     w3 = Web3(Web3.HTTPProvider(rpc))
+    # w3 = Web3(Web3.WebsocketProvider(wss_url))
     tx = LendBorrow(
         contract,
         GWEI,
@@ -37,10 +39,10 @@ if __name__ == "__main__":
     # tx.deposit(amount)
 
     # tx.repay_borrow_from_deposit(
-    #     amount_less_than_max=1000,
-    #     repay_buffer=1,
-    #     buffer_amount=100,
-    #     stop_at_amount=68000,
-    #     test_run=True
+    #     amount_less_than_max=1,
+    #     repay_buffer=0.01,
+    #     buffer_amount=0.01,
+    #     stop_at_amount=50,
+    #     test_run=False
     # )
-    tx.fill_borrow_from_deposit(percent=2, buffer=0.1, GAS_AMOUNT=0.01, test_run=True)
+    tx.fill_borrow_from_deposit(percent=2, buffer=0.01, GAS_AMOUNT=0.01, test_run=False)

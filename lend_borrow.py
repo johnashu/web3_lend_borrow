@@ -18,7 +18,7 @@ class LendBorrow(Web3Base):
         return balanceOf
 
     def get_rate(self) -> int:
-        rate = int(self.contract.functions.exchangeRateStored().call() / 10**16)
+        rate = int(self.contract.functions.exchangeRateStored().call() / 10 ** 16)
         return rate
 
     def deposited_token(self) -> int:
@@ -34,7 +34,7 @@ class LendBorrow(Web3Base):
         return borrowBalance
 
     def max_borrow_amount(self) -> int:
-        max_wei_available = int(self.deposited_token() // 100 * self.MAX_BORROW_AMOUNT)
+        max_wei_available = int((self.deposited_token() / 100) * self.MAX_BORROW_AMOUNT)
         log.info(f"Max borrow       ::  {max_wei_available}")
         return max_wei_available
 
@@ -87,6 +87,19 @@ class LendBorrow(Web3Base):
         except ValueError as e:
             log.error(f"issue with withdrawing [ {amount} ]  ::  {e}")
 
+    def withdraw_AAVE(self, token: str, amount: int, to: str, **kw) -> None:
+        log.info(f"Trying to withdraw  ::  {readable_price(amount)}")
+        try:
+            withdraw = amount
+            signed_txn = self.build_tx_with_function(
+                self.contract.functions.withdrawETH,
+                self.gas_price,
+                func_args=(token, withdraw, to),
+            )
+            self.process_tx(signed_txn, **kw)
+        except ValueError as e:
+            log.error(f"issue with withdrawing [ {amount} ]  ::  {e}")
+
     def borrow(self, amount: int, **kw) -> None:
         log.info(f"Trying to Borrow  :: {readable_price(amount)}")
         try:
@@ -122,6 +135,8 @@ class LendBorrow(Web3Base):
         buffer = self.w3.toWei(buffer_amount, "ether")
 
         last_balance = self.balance()
+
+        from time import sleep
 
         while 1:
             withdraw_flag = True
@@ -176,6 +191,8 @@ class LendBorrow(Web3Base):
                 self.repay(repay)
 
             last_balance = self.balance()
+
+            sleep(2)
 
     def fill_borrow_from_deposit(
         self,
