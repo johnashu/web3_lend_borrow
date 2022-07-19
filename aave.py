@@ -3,15 +3,13 @@ from time import sleep
 
 AMOUNT = 1000
 DELAY = 10
-token = '0x794a61358D6845594F94dc1DB02A252b5b4814aD' # ONE
-to = '0xfAFfb33B924C33381dee35D445013D3200249572' #receiver
+token = "0x794a61358D6845594F94dc1DB02A252b5b4814aD"  # ONE
+to = "0xfAFfb33B924C33381dee35D445013D3200249572"  # receiver
 
 MAX_BORROW_PERCENT = 65  # ONE only
 GWEI = 50
 
-contracts = dict(
-    AAVE="0xe86B52cE2e4068AdE71510352807597408998a69"
-)
+contracts = dict(AAVE="0xe86B52cE2e4068AdE71510352807597408998a69")
 
 if __name__ == "__main__":
     contract = contracts["AAVE"]
@@ -23,8 +21,8 @@ if __name__ == "__main__":
 
     tx.check_details()
     amount = tx.w3.toWei(AMOUNT, "ether")
-    print(amount)    
-         
+    print(amount)
+
     while 1:
         try:
             tx.withdraw_AAVE(token, amount, to)
@@ -32,4 +30,3 @@ if __name__ == "__main__":
         except:
             pass
         sleep(DELAY)
-   
